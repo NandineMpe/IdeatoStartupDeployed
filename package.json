@@ -75,12 +75,15 @@
     "svelte": "latest",
     "svix": "latest",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
-    "vaul": "^0.9.9",
-    "vue": "latest",
-    "vue-router": "latest",
-    "ws": "latest",
-    "zod": "^3.25.51"
+  "tailwindcss-animate": "^1.0.7",
+  "vaul": "^0.9.9",
+  "vue": "latest",
+  "vue-router": "latest",
+  "ws": "latest",
+  "zod": "^3.25.51"
+  },
+  "optionalDependencies": {
+    "@next/swc-linux-x64-gnu": "15.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
