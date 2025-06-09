@@ -94,6 +94,26 @@ pnpm type-check
 pnpm clean
 \`\`\`
 
+## ❗ Troubleshooting
+
+If you see a `ChunkLoadError` while running the development server:
+
+1. Stop the server with <kbd>Ctrl+C</kbd>.
+2. Remove the `.next` directory to clear stale caches:
+   ```bash
+   rm -rf .next
+   ```
+3. Ensure all dependencies are installed:
+   ```bash
+   pnpm install
+   ```
+4. Restart the server:
+   ```bash
+   pnpm dev
+   ```
+
+A missing or outdated build often causes this error, and cleaning the cache usually resolves it.
+
 ## 🔐 Authentication Setup
 
 Clerk handles authentication for this project. Ensure you have created an application in the Clerk dashboard and configured the following variables:
@@ -168,6 +188,4 @@ If you encounter any issues:
 ---
 
 Built with ❤️ for entrepreneurs and startup founders.
-\`\`\`
 
-Let's also create a simple setup script to help with the initial configuration:
