@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { DeepseekStream, StreamingTextResponse } from "@/lib/deepseek-stream"
+import { env } from "@/lib/env"
 
 // IMPORTANT: Set the runtime to edge
 export const runtime = "edge"
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json()
 
   // Check if the DEEPSEEK_API_KEY is set
-  if (!process.env.DEEPSEEK_API_KEY) {
+  if (!env.DEEPSEEK_API_KEY) {
     return NextResponse.json(
       {
         error: "Missing DEEPSEEK_API_KEY environment variable",
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      Authorization: `Bearer ${env.DEEPSEEK_API_KEY}`,
     },
     body: JSON.stringify({
       model: "deepseek-chat",

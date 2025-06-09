@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { DeepseekStream, StreamingTextResponse } from "@/lib/deepseek-stream"
+import { env } from "@/lib/env"
 
 export const runtime = "edge"
 
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
     }
 
     // Check if API key is available
-    if (!process.env.DEEPSEEK_API_KEY) {
+    if (!env.DEEPSEEK_API_KEY) {
       return NextResponse.json({ error: "DEEPSEEK_API_KEY environment variable is not set" }, { status: 500 })
     }
 
@@ -171,7 +172,7 @@ async function callDeepseekAPI(systemPrompt: string, userMessage: string): Promi
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      Authorization: `Bearer ${env.DEEPSEEK_API_KEY}`,
     },
     body: requestBody,
   })

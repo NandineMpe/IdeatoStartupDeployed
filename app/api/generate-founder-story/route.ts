@@ -1,9 +1,10 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
+import { env } from "@/lib/env"
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 // Fallback story in case of API failure
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     // Check if API key is available
-    if (!process.env.OPENAI_API_KEY) {
+    if (!env.OPENAI_API_KEY) {
       console.error("OpenAI API key is not configured")
       return NextResponse.json(
         { error: "OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable." },

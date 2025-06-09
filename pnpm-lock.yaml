@@ -224,6 +224,10 @@ importers:
       zod:
         specifier: ^3.25.51
         version: 3.25.51
+    optionalDependencies:
+      '@next/swc-linux-x64-gnu':
+        specifier: 15.2.4
+        version: 15.2.4
     devDependencies:
       '@types/node':
         specifier: ^22.15.30

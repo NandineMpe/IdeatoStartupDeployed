@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { anthropic } from "@ai-sdk/anthropic"
 import { generateText } from "ai"
+import { env } from "@/lib/env"
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     // Check if API key exists
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = env.ANTHROPIC_API_KEY
     if (!apiKey) {
       return NextResponse.json({ error: "ANTHROPIC_API_KEY is not set" }, { status: 500 })
     }
