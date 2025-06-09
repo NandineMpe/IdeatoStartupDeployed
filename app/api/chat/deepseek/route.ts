@@ -49,9 +49,9 @@ export async function POST(req: Request) {
     )
   }
 
-  // Convert the response into a friendly text-stream
-  const stream = DeepseekStream(response)
+  // Convert the response into a friendly text-stream and await it
+  const stream = await DeepseekStream(response)
 
   // Respond with the stream
-  return new StreamingTextResponse(stream)
+  return StreamingTextResponse(stream)
 }
