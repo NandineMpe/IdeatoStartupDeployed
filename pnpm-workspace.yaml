@@ -1,4 +1,10 @@
 packages:
-  - '.'
-  - 'packages/*'
-  - 'apps/*'
+  - .
+  - packages/*
+  - apps/*
+
+ignoredBuiltDependencies:
+  - '@clerk/shared'
+  - esbuild
+  - sharp
+  - unrs-resolver
