@@ -53,5 +53,5 @@ export async function POST(req: Request) {
   const stream = DeepseekStream(response)
 
   // Respond with the stream
-  return new StreamingTextResponse(stream)
+  return StreamingTextResponse(stream)
 }

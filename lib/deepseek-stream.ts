@@ -1,4 +1,4 @@
-import { createParser, type ParsedEvent, type ReconnectInterval } from "eventsource-parser"
+import { createParser } from "eventsource-parser"
 
 export interface DeepseekChatCompletionChunk {
   id: string
@@ -15,14 +15,14 @@ export interface DeepseekChatCompletionChunk {
   }[]
 }
 
-export async function DeepseekStream(res: Response) {
+export function DeepseekStream(res: Response) {
   const encoder = new TextEncoder()
   const decoder = new TextDecoder()
 
   const stream = new ReadableStream({
     async start(controller) {
       // callback
-      function onParse(event: ParsedEvent | ReconnectInterval) {
+      function onParse(event: any) {
         if (event.type === "event") {
           const data = event.data
           // https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
@@ -44,7 +44,7 @@ export async function DeepseekStream(res: Response) {
 
       // stream response (SSE) from Deepseek may be fragmented into multiple chunks
       // this ensures we properly read chunks and invoke an event for each SSE event stream
-      const parser = createParser(onParse)
+      const parser = createParser({ onEvent: onParse })
       // https://web.dev/streams/#asynchronous-iteration
       for await (const chunk of res.body as any) {
         parser.feed(decoder.decode(chunk))
