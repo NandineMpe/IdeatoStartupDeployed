@@ -8,7 +8,13 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: ['images.unsplash.com', 'img.clerk.com', 'img.clerk.af-south-1'],
+    domains: [
+      'images.unsplash.com',
+      'img.clerk.com',
+      'img.clerk.af-south-1',
+      'cvjdrblhcif4qupj.public.blob.vercel-storage.com',
+      'adtmi1hoep2dtmuq.public.blob.vercel-storage.com',
+    ],
   },
   env: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
