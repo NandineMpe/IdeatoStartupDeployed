@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
 import { createClient } from "@supabase/supabase-js"
+import { env } from "./env"
 
 export async function getCurrentUser() {
   try {
@@ -10,8 +11,8 @@ export async function getCurrentUser() {
     }
 
     // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_ANON_KEY
+    const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing Supabase credentials")

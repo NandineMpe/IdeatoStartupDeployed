@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai"
+import { env } from "@/lib/env"
 
 // Default sections structure
 const defaultSections = [
@@ -314,7 +315,7 @@ export async function POST(request: Request) {
     }
 
     // Check if API key is available
-    if (!process.env.GOOGLE_GEMINI_API_KEY) {
+    if (!env.GOOGLE_GEMINI_API_KEY) {
       console.error("Google Gemini API key is not configured")
       return NextResponse.json(
         {
@@ -341,7 +342,7 @@ export async function POST(request: Request) {
     }
 
     // Initialize the Gemini API client
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY)
+    const genAI = new GoogleGenerativeAI(env.GOOGLE_GEMINI_API_KEY)
 
     // Configure Gemini 2.5 Pro with specified parameters
     // Note: Removed the tools configuration that was causing the error
