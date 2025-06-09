@@ -5,7 +5,12 @@ const nextConfig = {
   
   // Required for Clerk to work properly
   images: {
-    domains: ['images.unsplash.com', 'img.clerk.dev'],
+    domains: [
+      'images.unsplash.com',
+      'img.clerk.dev',
+      'cvjdrblhcif4qupj.public.blob.vercel-storage.com',
+      'adtmi1hoep2dtmuq.public.blob.vercel-storage.com',
+    ],
   },
   
   // Environment variables that should be exposed to the browser
