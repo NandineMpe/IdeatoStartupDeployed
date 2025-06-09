@@ -15,7 +15,7 @@ export interface DeepseekChatCompletionChunk {
   }[]
 }
 
-export function DeepseekStream(res: Response) {
+export function DeepseekStream(res: Response): ReadableStream<any> {
   const encoder = new TextEncoder()
   const decoder = new TextDecoder()
 
