@@ -1,7 +1,8 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
+
 
 export interface ComingSoonOverlayProps {
   title?: string
@@ -15,30 +16,32 @@ export function ComingSoonOverlay({
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
 
-  // Pages that should show the overlay
-  const comingSoonPages = [
-    "/dashboard/idea/value-proposition",
-    "/dashboard/idea/business-model",
-    "/dashboard/idea/roadmap",
-    "/dashboard/market/llc-formation",
-    "/dashboard/market/legal",
-    "/dashboard/market/investors",
-    "/dashboard/market/funding-score",
-    "/dashboard/market/funding-strategy",
-    "/dashboard/market/opportunity-scanner",
-    "/dashboard/scale/credits",
-    "/dashboard/scale/events",
-    "/dashboard/scale/financial",
-    "/dashboard/scale/recruiting",
-    "/dashboard/scale/competition",
-    "/dashboard/scale/international",
-    "/dashboard/scale/business-plan",
-    "/dashboard/scale/cap-table",
-  ]
+  const comingSoonPages = useMemo(
+    () => [
+      "/dashboard/idea/value-proposition",
+      "/dashboard/idea/business-model",
+      "/dashboard/idea/roadmap",
+      "/dashboard/market/llc-formation",
+      "/dashboard/market/legal",
+      "/dashboard/market/investors",
+      "/dashboard/market/funding-score",
+      "/dashboard/market/funding-strategy",
+      "/dashboard/market/opportunity-scanner",
+      "/dashboard/scale/credits",
+      "/dashboard/scale/events",
+      "/dashboard/scale/financial",
+      "/dashboard/scale/recruiting",
+      "/dashboard/scale/competition",
+      "/dashboard/scale/international",
+      "/dashboard/scale/business-plan",
+      "/dashboard/scale/cap-table",
+    ],
+    []
+  )
 
   useEffect(() => {
     setVisible(comingSoonPages.includes(pathname))
-  }, [pathname])
+  }, [pathname, comingSoonPages])
 
   if (!visible) return null
 
