@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Download, ExternalLink, Search, Filter, ArrowUpDown, Star, DollarSign, Calendar, Tag } from "lucide-react"
+import Image from "next/image"
 
 // Define the pitch deck examples
 const pitchDecks = [
@@ -284,10 +285,11 @@ export function PitchExamples() {
                       onClick={() => setSelectedDeck(deck.id)}
                     >
                       <div className="relative h-48 overflow-hidden bg-black/50">
-                        <img
+                        <Image
                           src={deck.thumbnail || "/placeholder.svg"}
                           alt={`${deck.name} Pitch Deck`}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                         {deck.featured && (
                           <div className="absolute top-2 right-2 bg-primary text-black text-xs font-medium px-2 py-1 rounded-full">
