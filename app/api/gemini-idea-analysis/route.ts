@@ -47,7 +47,7 @@ const defaultSections = [
 ]
 
 // The updated system prompt for the Gemini analysis with the new contextual prompt
-const SYSTEM_PROMPT = `You are about to perform a comprehensive analysis of a proposed startup idea. Your goal is to determine whether the idea solves a real, pressing market problem, whether the timing is right, and what would need to be true for this idea to succeed.
+const SYSTEM_PROMPT = Buffer.from(`You are about to perform a comprehensive analysis of a proposed startup idea. Your goal is to determine whether the idea solves a real, pressing market problem, whether the timing is right, and what would need to be true for this idea to succeed.
 
 The user will provide the following:
 - What idea are you thinking about?
@@ -210,8 +210,7 @@ And so on for all 10 sections.
 
 Make sure each section is clearly separated and labeled with its number and title exactly as shown above.
 
-IMPORTANT: Do not use markdown formatting within the content of each section. Write in plain text without asterisks, hashtags, or other markdown syntax. Use regular paragraphs with line breaks for structure.
-`
+IMPORTANT: Do not use markdown formatting within the content of each section. Write in plain text without asterisks, hashtags, or other markdown syntax. Use regular paragraphs with line breaks for structure.`);
 
 // Function to clean markdown from text
 function cleanMarkdown(text: string): string {
@@ -376,7 +375,7 @@ export async function POST(request: Request) {
 
     // Prepare the prompt with all available information
     const prompt = `
-${SYSTEM_PROMPT}
+${SYSTEM_PROMPT.toString()}
 
 Idea Description (What idea are you thinking about?): ${ideaDescription}
 ${proposedSolution ? `Proposed Solution (What solution are you thinking of?): ${proposedSolution}` : ""}
