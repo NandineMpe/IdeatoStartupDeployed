@@ -104,7 +104,7 @@ And it sure as hell doesn't change the world.`,
     try {
       const bgImage = new Image()
       bgImage.src =
-        "https://cvjdrblhcif4qupj.public.blob.vercel-storage.com/Website%20backgrounds/upscalemedia-transformed-ojypcL68F0lDklQoXOOWH8FcZ92dro.png"
+        "https://adtmi1hoep2dtmuq.public.blob.vercel-storage.com/JunoTrainStationWallpaper-CQdXr4yQAM3OGg0Yixek8NCjYkxxVG.png"
 
       bgImage.onload = () => {
         console.log("Background image loaded successfully")
@@ -151,7 +151,7 @@ And it sure as hell doesn't change the world.`,
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="https://cvjdrblhcif4qupj.public.blob.vercel-storage.com/Website%20backgrounds/upscalemedia-transformed-ojypcL68F0lDklQoXOOWH8FcZ92dro.png"
+            src="https://adtmi1hoep2dtmuq.public.blob.vercel-storage.com/JunoTrainStationWallpaper-CQdXr4yQAM3OGg0Yixek8NCjYkxxVG.png"
             alt="Startup Train with entrepreneur"
             fill
             className="object-cover"
