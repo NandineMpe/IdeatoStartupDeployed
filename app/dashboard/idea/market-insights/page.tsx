@@ -89,6 +89,7 @@ export default function ConsumerMarketInsightsPage() {
     marked.setOptions({
       breaks: true,
       gfm: true,
+      async: false,
     })
   }, [])
 
@@ -510,16 +511,16 @@ export default function ConsumerMarketInsightsPage() {
 
   const highlightSearchTerm = (content: string) => {
     if (!searchTerm.trim() || !content) {
-      return marked(content || "")
+      return marked.parse(content || "")
     }
 
     try {
       const regex = new RegExp(`(${searchTerm})`, "gi")
       const highlightedContent = content.replace(regex, '<mark class="bg-primary/20 text-white px-1 rounded">$1</mark>')
-      return marked(highlightedContent)
+      return marked.parse(highlightedContent)
     } catch (error) {
       console.error("Error highlighting search term:", error)
-      return marked(content)
+      return marked.parse(content)
     }
   }
 
@@ -542,7 +543,7 @@ export default function ConsumerMarketInsightsPage() {
       }
 
       if (match && match[1]) {
-        return marked(match[1].trim())
+        return marked.parse(match[1].trim())
       }
 
       // If still no match, try to find any section that might contain relevant keywords
@@ -560,7 +561,7 @@ export default function ConsumerMarketInsightsPage() {
           const altRegex = new RegExp(`## ${altTitle}([\\s\\S]*?)(?=^## |$)`, "m")
           const altMatch = content.match(altRegex)
           if (altMatch && altMatch[1]) {
-            return marked(altMatch[1].trim())
+            return marked.parse(altMatch[1].trim())
           }
         }
       }
