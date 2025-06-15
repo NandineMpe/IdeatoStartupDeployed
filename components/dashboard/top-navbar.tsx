@@ -42,7 +42,7 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header className="bg-black border-b border-gray-800">
       <div className="flex items-center justify-between px-6 py-4">
         {/* Search */}
         <div className="flex items-center flex-1 max-w-md">
@@ -53,7 +53,7 @@ export function TopNavbar() {
               placeholder="Search ideas, insights, or features..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+              className="pl-10 bg-black border-gray-800"
             />
           </div>
         </div>
@@ -72,7 +72,7 @@ export function TopNavbar() {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={user?.imageUrl || "/placeholder.svg"} alt={user?.fullName || ""} />
-                  <AvatarFallback className="bg-blue-500 text-white">
+                  <AvatarFallback className="bg-gray-700 text-white">
                     {user?.fullName ? getInitials(user.fullName) : user?.firstName?.[0] || "U"}
                   </AvatarFallback>
                 </Avatar>
