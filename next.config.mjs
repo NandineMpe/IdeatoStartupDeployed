@@ -8,12 +8,27 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: [
-      'images.unsplash.com',
-      'img.clerk.com',
-      'img.clerk.af-south-1',
-      'cvjdrblhcif4qupj.public.blob.vercel-storage.com',
-      'adtmi1hoep2dtmuq.public.blob.vercel-storage.com',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.af-south-1',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cvjdrblhcif4qupj.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'adtmi1hoep2dtmuq.public.blob.vercel-storage.com',
+      },
     ],
   },
   env: {
