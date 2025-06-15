@@ -113,6 +113,12 @@ If you see a `ChunkLoadError` while running the development server:
    ```
 
 A missing or outdated build often causes this error, and cleaning the cache usually resolves it.
+### Build fails due to out-of-memory errors
+If the build stops with `Next.js build worker exited with code: null and signal: SIGBUS` or you see warnings about "Serializing big strings", increase Node's heap size:
+```bash
+NODE_OPTIONS=--max_old_space_size=4096 pnpm build
+```
+This allocates about 4 GB of RAM for the build process. Adjust as needed.
 
 ## 🔐 Authentication Setup
 
