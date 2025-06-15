@@ -60,6 +60,9 @@ export default function ConsumerMarketInsightsPage() {
     return content.replace(/\[\d+\]/g, "")
   }
 
+  // Escape special regex characters in a search term
+  const escapeRegExp = (term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
   // Simulate progress during analysis
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -515,7 +518,7 @@ export default function ConsumerMarketInsightsPage() {
     }
 
     try {
-      const regex = new RegExp(`(${searchTerm})`, "gi")
+      const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, "gi")
       const highlightedContent = content.replace(
         regex,
         '<mark class="bg-primary/20 text-white px-1 rounded">$1</mark>',
