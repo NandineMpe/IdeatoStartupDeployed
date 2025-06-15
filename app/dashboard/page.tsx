@@ -12,18 +12,21 @@ import {
   Briefcase,
   Award,
 } from "lucide-react"
+import { currentUser } from "@clerk/nextjs/server"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { BentoCard } from "@/components/dashboard/bento-grid"
 import { MetricCard } from "@/components/dashboard/metric-card"
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await currentUser()
+  const userName = user?.firstName || user?.fullName || "Founder"
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold text-white">
-          Welcome back, <span className="text-primary">Founder</span>
+          Welcome back, <span className="text-primary">{userName}</span>
         </h1>
         <p className="text-white/60">
           Track your progress, manage tasks, and access resources to help grow your startup.
