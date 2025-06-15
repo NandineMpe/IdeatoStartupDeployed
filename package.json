@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS=--max_old_space_size=4096 next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -75,12 +75,12 @@
     "svelte": "latest",
     "svix": "latest",
     "tailwind-merge": "^2.6.0",
-  "tailwindcss-animate": "^1.0.7",
-  "vaul": "^0.9.9",
-  "vue": "latest",
-  "vue-router": "latest",
-  "ws": "latest",
-  "zod": "^3.25.51"
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^0.9.9",
+    "vue": "latest",
+    "vue-router": "latest",
+    "ws": "latest",
+    "zod": "^3.25.51"
   },
   "optionalDependencies": {
     "@next/swc-linux-x64-gnu": "15.3.3"
