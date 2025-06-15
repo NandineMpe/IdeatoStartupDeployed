@@ -35,6 +35,10 @@ A comprehensive platform for entrepreneurs to analyze business ideas, generate p
    
    # Install project dependencies
    pnpm install
+
+   # If you see ERR_PNPM_TARBALL_INTEGRITY warnings during installation,
+   # clear pnpm's local store and reinstall
+   pnpm store prune && pnpm install
    \`\`\`
 
 3. **Set up environment variables**
@@ -119,6 +123,15 @@ If the build stops with `Next.js build worker exited with code: null and signal:
 NODE_OPTIONS=--max_old_space_size=4096 pnpm build
 ```
 This allocates about 4 GB of RAM for the build process. Adjust as needed.
+
+### ERR_PNPM_TARBALL_INTEGRITY during installation
+If `pnpm install` fails with warnings about `ERR_PNPM_TARBALL_INTEGRITY`,
+packages may have been republished and the cached checksums no longer match.
+Clear pnpm's local store and reinstall:
+```bash
+pnpm store prune
+pnpm install
+```
 
 ## 🔐 Authentication Setup
 
