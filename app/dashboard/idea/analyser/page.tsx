@@ -171,7 +171,7 @@ export default function IdeaAnalyser() {
       <Card>
         <CardHeader>
           <CardTitle>Business Idea Analyzer</CardTitle>
-          <CardDescription>Describe your business idea and get a comprehensive analysis</CardDescription>
+          <CardDescription>The journey begins not with a solution, but with a deep understanding of a problem. This structured analysis is designed to prevent the single greatest cause of startup failure: investing time, money, and effort into building a product nobody wants.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

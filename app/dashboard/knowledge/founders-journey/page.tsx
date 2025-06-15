@@ -120,7 +120,7 @@ export default function FoundersJourneyPage() {
   return (
     <div className="space-y-6 pb-8 px-4 md:px-6">
       <h1 className="text-3xl font-bold">Founder's Journey</h1>
-      <p className="text-gray-400">Document and share your founder story to inspire others and attract investors.</p>
+      <p className="text-gray-400">At the pre-seed or seed stage, when there are few, if any, metrics like revenue or user growth, the founding team is the primary asset. Investors are betting on the people, and FMF is their best proxy for the team's ability to navigate the inevitable challenges of building a company from scratch.</p>
 
       {/* Stepper Component */}
       <div className="mb-8">
