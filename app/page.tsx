@@ -102,24 +102,7 @@ And it sure as hell doesn't change the world.`,
   }
 
   useEffect(() => {
-    // Fixed image preloading approach
-    try {
-      const bgImage = new window.Image()
-      bgImage.src =
-        "https://adtmi1hoep2dtmuq.public.blob.vercel-storage.com/JunoTrainStationWallpaper-CQdXr4yQAM3OGg0Yixek8NCjYkxxVG.png"
-
-      bgImage.onload = () => {
-        console.log("Background image loaded successfully")
-      }
-
-      bgImage.onerror = (error) => {
-        console.error("Failed to load background image", error)
-      }
-    } catch (error) {
-      console.error("Error in image preloading:", error)
-    }
-
-    // Set a minimum display time for the preloader (5 seconds)
+    // Delay hiding the preloader to ensure a smooth transition
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 5000)
