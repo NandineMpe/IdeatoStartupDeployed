@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 import { env } from "@/lib/env"
-// ⇢ Load system prompt at build-time
-import businessIdeaAnalyzerPrompt from "@/prompts/businessIdeaAnalyzer.md?raw"
+// ⇢ Load system prompt from a markdown file at runtime
+import fs from "fs"
+import path from "path"
+
+// Load system prompt at runtime from the markdown file. Using fs avoids bundler
+// issues with the `?raw` loader when building the project.
+const businessIdeaAnalyzerPrompt = fs.readFileSync(
+  path.join(process.cwd(), "prompts", "businessIdeaAnalyzer.md"),
+  "utf8",
+)
 
 // Default sections structure
 const defaultSections = [
