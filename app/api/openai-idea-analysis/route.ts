@@ -5,6 +5,9 @@ import { env } from "@/lib/env"
 import fs from "fs"
 import path from "path"
 
+// Explicitly use the Node.js runtime since this route relies on Node APIs
+export const runtime = "nodejs"
+
 // Load system prompt at runtime from the markdown file. Using fs avoids bundler
 // issues with the `?raw` loader when building the project.
 const businessIdeaAnalyzerPrompt = fs.readFileSync(
