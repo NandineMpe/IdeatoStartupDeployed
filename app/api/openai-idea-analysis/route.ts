@@ -1,437 +1,307 @@
-import { NextResponse } from "next/server"
-import OpenAI from "openai"
-import { env } from "@/lib/env"
+import OpenAI from "openai";
+import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/env";
+import { z } from "zod";
 
-// Default sections structure
-const defaultSections = [
-  {
-    title: "1. PROBLEM DEFINITION & HYPOTHESIS VALIDATION",
-    content: "Analysis not available due to an error. Please try again later.",
+// ──────────────────────────────────────────────────────────────────────────────
+//  CONSTANTS & SCHEMAS
+// ──────────────────────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `# Business Idea Analysis System
+
+You are an expert business analyst specializing in evaluating startup ideas. Your task is to analyze the provided business idea and generate a comprehensive, structured analysis that helps entrepreneurs understand the viability and potential of their idea.
+
+## Analysis Structure
+
+Your analysis MUST follow this exact structure and include ALL of the following sections:
+1. PROBLEM DEFINITION & HYPOTHESIS VALIDATION
+2. MARKET NEED & DEMAND DYNAMICS
+3. ALTERNATIVES & CUSTOMER SENTIMENT
+4. USER BENEFITS & STRATEGIC GAP ANALYSIS
+5. TRENDS & ENABLING TECHNOLOGIES
+6. RISK & BARRIER ASSESSMENT
+7. MONETIZATION & BUSINESS MODEL VALIDATION
+8. TIMING & COMPETITION
+9. MACROFORCES (Regulatory, Cultural, Economic, Demographic)
+10. CONCLUSIONS & RECOMMENDATIONS
+
+For each section, provide a detailed analysis of at least 200 words. Be specific, data-driven, and actionable in your recommendations.`;
+
+const DEFAULT_TITLES = [
+  "PROBLEM DEFINITION & HYPOTHESIS VALIDATION",
+  "MARKET NEED & DEMAND DYNAMICS",
+  "ALTERNATIVES & CUSTOMER SENTIMENT",
+  "USER BENEFITS & STRATEGIC GAP ANALYSIS",
+  "TRENDS & ENABLING TECHNOLOGIES",
+  "RISK & BARRIER ASSESSMENT",
+  "MONETIZATION & BUSINESS MODEL VALIDATION",
+  "TIMING & COMPETITION",
+  "MACROFORCES (Regulatory, Cultural, Economic, Demographic)",
+  "CONCLUSIONS & RECOMMENDATIONS",
+] as const;
+
+const DEFAULT_SECTIONS = DEFAULT_TITLES.map((t, i) => ({
+  title: `${i + 1}. ${t}`,
+  content: "Analysis not available due to an error. Please try again later.",
+}));
+
+const MIN_SECTION_LENGTH = 1200;
+
+// AJV schema for AI response
+const aiSchema = {
+  type: "object",
+  required: ["analysis"],
+  properties: {
+    analysis: {
+      type: "object",
+      required: ["sections"],
+      properties: {
+        sections: {
+          type: "array",
+          minItems: 10,
+          items: {
+            type: "object",
+            required: ["title", "content"],
+            properties: {
+              title: { type: "string" },
+              content: { type: "string", minLength: MIN_SECTION_LENGTH },
+            },
+          },
+        },
+      },
+    },
   },
-  {
-    title: "2. MARKET NEED & DEMAND DYNAMICS",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "3. ALTERNATIVES & CUSTOMER SENTIMENT",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "4. USER BENEFITS & STRATEGIC GAP ANALYSIS",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "5. TRENDS & ENABLING TECHNOLOGIES",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "6. RISK & BARRIER ASSESSMENT",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "7. MONETIZATION & BUSINESS MODEL VALIDATION",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "8. TIMING & COMPETITION",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "9. MACROFORCES (Regulatory, Cultural, Economic, Demographic)",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-  {
-    title: "10. CONCLUSIONS & RECOMMENDATIONS",
-    content: "Analysis not available due to an error. Please try again later.",
-  },
-]
+} as const;
 
-// The system prompt for the OpenAI analysis
-const SYSTEM_PROMPT = Buffer.from(`You are about to perform a comprehensive analysis of a proposed startup idea. Your goal is to determine whether the idea solves a real, pressing market problem, whether the timing is right, and what would need to be true for this idea to succeed.
+const ajv = new Ajv({ allErrors: true, strict: false });
+const validateAI = ajv.compile(aiSchema);
 
-The user will provide the following:
-- What idea are you thinking about?
-- What solution are you thinking of?
-- Who is it for?
-- Where is it for?
+// Zod request schema
+const BodySchema = z.object({
+  ideaDescription: z.string().trim().min(20).max(5000),
+  proposedSolution: z.string().trim().max(3000).optional().or(z.literal("")),
+  intendedUsers: z.string().trim().max(2500).optional().or(z.literal("")),
+  geographicFocus: z.string().trim().max(1500).optional().or(z.literal("")),
+});
 
-You must then follow the structured diagnostic framework below and execute research using your knowledge and analytical capabilities.
+type BodyInput = z.infer<typeof BodySchema>;
 
-You are a multi-disciplinary startup analyst trained in venture strategy, behavioral economics, AI technology trends, global commerce, and market validation frameworks. Your responses must demonstrate rigorous analytical thinking, with an emphasis on structured reasoning, layered synthesis, and source triangulation.
+// Basic sanitiser
+const sanitize = (v: string) => v.replace(/```[\s\S]*?```/g, "").replace(/[\u0000-\u001F\u007F]+/g, " ").trim();
 
-You must apply the following principles at all times:
+// Markdown cleaning helper
+const cleanMarkdown = (t: string) =>
+  t.replace(/#{1,6}\s/g, "")
+    .replace(/\*{1,3}(.*?)\*{1,3}/g, "$1")
+    .replace(/_{1,3}(.*?)_{1,3}/g, "$1")
+    .replace(/^\s*[-*+]\s/gm, "")
+    .replace(/^\s*(\d+)\.\s/gm, "$1. ")
+    .replace(/^\s*>\s/gm, "")
+    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```(?:\w+)?\n([\s\S]*?)\n```/g, "$1"))
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
-• **Depth Over Brevity**: All sections must exceed 1500 characters and offer in-depth, multi-layered insight. Avoid shallow summaries.
-
-• **Chain-of-Thought Reasoning**: Work step-by-step through the logic in plain language, using natural internal monologue and structured headings.
-
-• **Step-Back Prompting**: Begin each section with general reflection and relevant frameworks, then narrow to the case-specific analysis.
-
-• **Source Evaluation**: Use only reputable, up-to-date sources. Prioritize academic, government, or verified commercial data (e.g., McKinsey, BCG, Crunchbase, G2, Gartner, etc.)
-
-• **Critical Evaluation**: At every turn, ask: What assumptions am I making? What might be missing or misleading? What must be true for this to succeed?
-
-Do not write like a chatbot. Write like a senior analyst preparing a due diligence report for an investment committee.
-
-# =============== STRUCTURE YOUR RESPONSE ================
-Your deliverable must be structured using the following high-level sections:
-
----
-
-## 1. PROBLEM DEFINITION & HYPOTHESIS VALIDATION
-Within this section, include clearly marked subheadings for:
-- Problem Type Classification (Blatant, Latent, Aspirational, or Critical)
-- Pain Frequency Matrix (High/Low Frequency × High/Low Severity)
-- Problem Origin Analysis (personal pain, market gap, new trend, domain expertise)
-- Root Cause Analysis ("5 Whys" technique)
-- Public Forum Validation (Reddit, Quora, etc.)
-- Core Hypothesis Statement (What belief does this idea rely on?)
-
-## 2. MARKET NEED & DEMAND DYNAMICS
-Within this section, include clearly marked subheadings for:
-- Search Volume & Trend Analysis (Google Trends, Reddit, TikTok)
-- Pricing Disparity Assessment
-- Customer Outcome Mapping (functional, emotional, social outcomes)
-- Adoption Readiness Level (ARL) Analysis
-- Demand Trend Analysis (increasing/decreasing patterns)
-
-## 3. ALTERNATIVES & CUSTOMER SENTIMENT
-Within this section, include clearly marked subheadings for:
-- Competitive Landscape Analysis:
-  - Direct Competitors (same solution)
-  - Indirect Substitutes (different solution to same problem)
-  - Status Quo (manual or inefficient workarounds)
-- Sentiment Analysis Methodology
-- Review Source Analysis:
-  - B2C: Reddit, Twitter/X, TikTok, Trustpilot
-  - B2B: G2, Capterra, LinkedIn
-- Unmet Needs & Complaint Patterns
-- Switching Friction Assessment
-
-## 4. USER BENEFITS & STRATEGIC GAP ANALYSIS
-Within this section, include clearly marked subheadings for:
-- Functional Utility Definition
-- Emotional & Social Rewards
-- Underserved Customer Segments
-- Strategic Opportunity Identification
-- Blue Ocean Strategy Application
-- Delivery Model Innovation Assessment
-
-## 5. TRENDS & ENABLING TECHNOLOGIES
-Within this section, include clearly marked subheadings for:
-- Trend Validation (Google Trends, CB Insights, Gartner)
-- Enabling Technology Assessment (AI, APIs, logistics, NLP, etc.)
-- Market Failure Analysis (tech maturity, logistics gaps, regulatory issues)
-- Trend Alignment Analysis:
-  - Macrotrend Alignment
-  - Cultural Alignment
-  - Demographic Concentration
-
-## 6. RISK & BARRIER ASSESSMENT
-Within this section, include clearly marked subheadings for:
-- Startup-Specific Risk Analysis:
-  - Market Risk (no real need)
-  - Technical Risk (integration complexity)
-  - Team Risk (missing skills)
-  - Financial Risk (CAC, LTV, development runway)
-- Entry Barrier Evaluation
-- Switching Friction Assessment
-
-## 7. MONETIZATION & BUSINESS MODEL VALIDATION
-Within this section, include clearly marked subheadings for:
-- Revenue Model Proposals:
-  - Transaction-based
-  - Subscription
-  - AI concierge upsell
-  - Aggregator/affiliate hybrid
-- CAC/LTV Analysis
-- Customer Acquisition Strategy
-- Payback Window Assessment
-
-## 8. TIMING & COMPETITION
-Within this section, include clearly marked subheadings for:
-- Competitor & Case Study Review:
-  - Failory Startup Failure Analysis
-  - Starter Story & YourStory Case Studies
-  - Crunchbase Active Insurgent Analysis
-- Market Timing Assessment
-- Novel vs. Market-Proven Model Analysis
-- Window of Opportunity Analysis
-
-## 9. MACROFORCES (Regulatory, Cultural, Economic, Demographic)
-Within this section, include clearly marked subheadings for:
-- Regulatory Environment Analysis
-- Cultural & Social Trend Impact
-- Economic Factor Assessment
-- Demographic Pattern Relevance
-- Geopolitical Considerations (if applicable)
-
-## 10. CONCLUSIONS & RECOMMENDATIONS
-Within this section, include clearly marked subheadings for:
-- Viability Assessment
-- Commercial Feasibility Analysis
-- Strongest Entry Point Recommendation
-- Validation Experiment Proposals
-- Final Verdict & Actionable Pathways
-
----
-
-# ========= AGENTIC CAPABILITIES =========
-Use your analytical capabilities to enhance your analysis:
-
-1. Draw on your knowledge of current market data, trends, and competitive intelligence
-2. Analyze patterns from startup case studies and industry reports
-3. Consider customer reviews and sentiment from various platforms
-4. Analyze social sentiment, trend data, and technology forecasts to inform your analysis
-5. Conduct multi-hop reasoning to connect insights across different domains and sources
-
-# ========= INPUT FORMAT =========
-User will provide:
-- Idea Description (What idea are you thinking about?)
-- Proposed Solution (What solution are you thinking of?)
-- Intended Users (Who is it for?)
-- Geographic Focus (Where is it for?)
-
-# ========== OUTPUT FORMAT ==========
-Each section must be detailed, referenced, and contain analytical sub-points with clearly marked subheadings. Use bullets, numbered lists, and emphasis to highlight key points. Avoid surface-level synthesis. Responses should reflect strategic acuity, systems thinking, and rigorous evaluation.
-
-Your response should be structured with clear section headers and content. Use the following format:
-
-## 1. PROBLEM DEFINITION & HYPOTHESIS VALIDATION
-Your analysis here with clearly marked subheadings...
-
-## 2. MARKET NEED & DEMAND DYNAMICS
-Your analysis here with clearly marked subheadings...
-
-## 3. ALTERNATIVES & CUSTOMER SENTIMENT
-Your analysis here with clearly marked subheadings...
-
-And so on for all 10 sections.
-
-Make sure each section is clearly separated and labeled with its number and title exactly as shown above.
-
-IMPORTANT: Do not use markdown formatting within the content of each section. Write in plain text without asterisks, hashtags, or other markdown syntax. Use regular paragraphs with line breaks for structure.`);
-
-// Function to clean markdown from text
-function cleanMarkdown(text: string): string {
-  return (
-    text
-      // Remove heading markers
-      .replace(/#{1,6}\s/g, "")
-      // Remove bold/italic markers
-      .replace(/\*{1,3}(.*?)\*{1,3}/g, "$1")
-      // Remove underscores for emphasis
-      .replace(/_{1,3}(.*?)_{1,3}/g, "$1")
-      // Remove bullet points
-      .replace(/^\s*[-*+]\s/gm, "")
-      // Remove numbered lists but keep the numbers
-      .replace(/^\s*(\d+)\.\s/gm, "$1. ")
-      // Remove blockquotes
-      .replace(/^\s*>\s/gm, "")
-      // Remove code blocks but keep content
-      .replace(/```[\s\S]*?```/g, (match) => {
-        return match.replace(/```(?:\w+)?\n([\s\S]*?)\n```/g, "$1").trim()
-      })
-      // Remove inline code but keep content
-      .replace(/`([^`]+)`/g, "$1")
-      // Normalize multiple newlines to double newlines
-      .replace(/\n{3,}/g, "\n\n")
-      // Trim whitespace
-      .trim()
-  )
-}
-
-// Function to extract sections from text response
 function extractSectionsFromText(text: string) {
-  try {
-    const sections = []
-    const sectionRegex = /## (\d+\.\s+[A-Z\s&()]+)\n([\s\S]*?)(?=## \d+\.|$)/g
-    let match
-
-    while ((match = sectionRegex.exec(text)) !== null) {
-      const title = match[1].trim()
-      const content = cleanMarkdown(match[2].trim())
-      sections.push({ title, content })
-    }
-
-    if (sections.length > 0) {
-      return { sections }
-    }
-
-    return null
-  } catch (error) {
-    console.error("Failed to extract sections from text:", error)
-    return null
-  }
+  const arr: { title: string; content: string }[] = [];
+  const re = /##\s+(\d+\.\s+[A-Z\s&()]+)\n([\s\S]*?)(?=##\s+\d+\.|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) arr.push({ title: m[1].trim(), content: cleanMarkdown(m[2].trim()) });
+  return arr.length ? { sections: arr } : null;
 }
 
-export async function POST(request: Request) {
-  // Set CORS headers
+function ensureCompleteness(analysis: { sections: { title: string; content: string }[] }) {
+  const map = new Map(analysis.sections.map((s) => [s.title.toUpperCase(), s]));
+  return {
+    sections: DEFAULT_TITLES.map((t, i) => {
+      const key = `${i + 1}. ${t}`;
+      const found = map.get(key.toUpperCase());
+      if (found && found.content.length >= MIN_SECTION_LENGTH) return found;
+      return {
+        title: key,
+        content: found
+          ? `${found.content}\n\n— Section too short (<${MIN_SECTION_LENGTH}). Expand.`
+          : DEFAULT_SECTIONS[i].content,
+      };
+    }),
+  };
+}
+
+// OpenAI config - using gpt-4.1 as the primary model
+const MODELS = ["gpt-4.1"] as const;
+const TEMPERATURE = 0.12;
+const MAX_TOKENS = 4000; // Increased to allow for more detailed responses
+const TOP_P = 0.1;
+const TIMEOUT_MS = 60_000;
+
+export const runtime = "edge";
+
+export async function POST(req: NextRequest) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Content-Type": "application/json",
-  }
+  } as const;
 
-  // Handle preflight requests
-  if (request.method === "OPTIONS") {
-    return new NextResponse(null, { status: 204, headers })
+  if (req.method === "OPTIONS") return new NextResponse(null, { status: 204, headers });
+
+  // Validate body
+  let payload: unknown;
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body", analysis: { sections: DEFAULT_SECTIONS } }, { status: 400, headers });
   }
+  const parseRes = BodySchema.safeParse(payload);
+  if (!parseRes.success) {
+    return NextResponse.json({ error: "Validation error", details: parseRes.error.flatten() }, { status: 400, headers });
+  }
+  const b: BodyInput = parseRes.data;
+
+  const OPENAI_KEY = env?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  if (!OPENAI_KEY)
+    return NextResponse.json({ error: "OPENAI_API_KEY not configured", analysis: { sections: DEFAULT_SECTIONS } }, { status: 500, headers });
+
+  // Compose prompt
+  const msg = [
+    "I have a business idea and need rigorous feedback.",
+    `Problem description:\n${sanitize(b.ideaDescription)}`,
+    `Proposed solution:\n${sanitize(b.proposedSolution || "(none specified)")}`,
+    `Intended users:\n${sanitize(b.intendedUsers || "(unspecified)")}`,
+    `Geographic focus:\n${sanitize(b.geographicFocus || "(global/unspecified)")}`,
+    "Please analyse according to the system prompt and output the required JSON structure.",
+  ].join("\n\n");
+
+  console.log('Initializing OpenAI client...');
+  const openai = new OpenAI({ 
+    apiKey: OPENAI_KEY,
+    timeout: 30000, // 30 second timeout for initial connection
+  });
+
+  const timeout = setTimeout(() => {
+    throw new Error('Request timed out after 60 seconds');
+  }, TIMEOUT_MS);
 
   try {
-    // Parse the request body
-    const requestBody = await request.text()
-    let body
-
+    // Test the API key first
     try {
-      body = JSON.parse(requestBody)
-    } catch (parseError) {
-      console.error("Failed to parse request body:", parseError)
-      return NextResponse.json(
-        {
-          error: "Invalid request body",
-          analysis: {
-            sections: defaultSections,
-          },
-        },
-        { status: 400, headers },
-      )
+      await openai.models.list();
+      console.log('OpenAI API key is valid');
+    } catch (authError) {
+      console.error('OpenAI Authentication Error:', authError);
+      throw new Error('Invalid OpenAI API key or authentication failed');
     }
 
-    const { ideaDescription, proposedSolution, intendedUsers, geographicFocus } = body
-
-    // Validate required fields
-    if (!ideaDescription) {
-      return NextResponse.json(
-        {
-          error: "Problem description is required",
-          analysis: {
-            sections: defaultSections,
-          },
-        },
-        { status: 400, headers },
-      )
-    }
-
-    // Check if API key is available
-    if (!env.OPENAI_API_KEY) {
-      console.error("OpenAI API key is not configured")
-      return NextResponse.json(
-        {
-          error: "OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable.",
-          analysis: {
-            sections: defaultSections,
-          },
-        },
-        { status: 500, headers },
-      )
-    }
-
-    // Check if the idea description is too long
-    if (ideaDescription.length > 5000) {
-      return NextResponse.json(
-        {
-          error: "Problem description is too long. Please keep it under 5000 characters.",
-          analysis: {
-            sections: defaultSections,
-          },
-        },
-        { status: 400, headers },
-      )
-    }
-
-    // Prepare the user message with all available information
-    const userMessage = `
-Idea Description (What idea are you thinking about?): ${ideaDescription}
-${proposedSolution ? `Proposed Solution (What solution are you thinking of?): ${proposedSolution}` : ""}
-${intendedUsers ? `Intended Users (Who is it for?): ${intendedUsers}` : ""}
-${geographicFocus ? `Geographic Focus (Where is it for?): ${geographicFocus}` : ""}
-`
-
-    try {
-      // Initialize the OpenAI client with explicit configuration
-      const openai = new OpenAI({
-        apiKey: env.OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true,
-      })
-
-      // Call OpenAI API with explicit error handling
+    // FIRST CALL – normal generation loop
+    for (const model of MODELS) {
+      console.log(`Attempting to generate completion with model: ${model}`);
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model,
+        temperature: TEMPERATURE,
+        top_p: TOP_P,
+        max_tokens: MAX_TOKENS,
+        response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: SYSTEM_PROMPT.toString() },
-          { role: "user", content: userMessage },
-        ],
-        temperature: 0.2,
-        max_tokens: 4000, // Reduced to avoid potential issues
-        top_p: 0.95,
-      })
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: msg },
+        ]
+      }, {
+        timeout: 45000 // 45 second timeout for the completion
+      });
 
-      // Extract the text from the response
-      const text = completion.choices[0].message.content
-
-      if (!text) {
-        throw new Error("Empty response from OpenAI API")
+      const raw = completion.choices[0].message.content;
+      try {
+        const parsedAI = JSON.parse(raw);
+        if (validateAI(parsedAI)) {
+        clearTimeout(timeout);
+        return NextResponse.json(parsedAI, { headers });
       }
+        // If JSON invalid -> attempt repair via function‑call
+        const repair = await repairWithFunctionCalling(openai, model, msg, raw);
+        if (repair) {
+          clearTimeout(timeout);
+          return NextResponse.json(repair, { headers });
+        }
+      } catch {/* fallthrough to regex extraction */}
 
-      // Extract sections from the response
-      const analysis = extractSectionsFromText(text)
-
-      // If extraction failed, create a structured response manually
-      if (!analysis || !analysis.sections || analysis.sections.length === 0) {
-        console.log("Section extraction failed, structuring response manually")
-
-        // Create a structured response based on the section titles
-        const structuredSections = defaultSections.map((defaultSection) => {
-          const sectionTitle = defaultSection.title
-          const titleRegex = new RegExp(
-            `${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?(?=\\d+\\.|$)`,
-            "i",
-          )
-          const match = text.match(titleRegex)
-
-          return {
-            title: sectionTitle,
-            content: match ? cleanMarkdown(match[0].replace(sectionTitle, "").trim()) : defaultSection.content,
-          }
-        })
-
-        return NextResponse.json({ analysis: { sections: structuredSections } }, { headers })
+      const extracted = extractSectionsFromText(raw);
+      if (extracted) {
+        clearTimeout(timeout);
+        return NextResponse.json(ensureCompleteness(extracted), { headers });
       }
-
-      // Return the analysis
-      return NextResponse.json({ analysis }, { headers })
-    } catch (apiError) {
-      console.error("API error:", apiError)
-
-      // Return a fallback analysis with detailed error information
-      return NextResponse.json(
-        {
-          error: apiError instanceof Error ? apiError.message : "Unknown API error",
-          analysis: {
-            sections: defaultSections,
-          },
-        },
-        { status: 500, headers },
-      )
     }
-  } catch (error) {
-    console.error("Error analyzing business idea:", error)
+    clearTimeout(timeout);
+    return NextResponse.json({ error: "AI analysis unavailable", analysis: { sections: DEFAULT_SECTIONS } }, { status: 502, headers });
+  } catch (err) {
+    clearTimeout(timeout);
+    const error = err as any;
+    console.error('OpenAI API Error Details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      response: error.response?.data,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
 
-    // Always return a valid JSON response with detailed error information
-    return NextResponse.json(
-      {
-        error: "Failed to analyze business idea",
-        details: error instanceof Error ? error.message : "Unknown error",
-        analysis: {
-          sections: defaultSections,
-        },
-      },
-      {
-        status: 500,
-        headers,
-      },
-    )
+    let status = 500;
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.code === 'ETIMEDOUT' || error.message.includes('timed out')) {
+      status = 504;
+      errorMessage = 'Request to AI service timed out';
+    } else if (error.status === 401) {
+      status = 401;
+      errorMessage = 'Invalid API key or authentication failed';
+    } else if (error.status === 429) {
+      status = 429;
+      errorMessage = 'Rate limit exceeded. Please try again later.';
+    } else if (error.status === 503) {
+      status = 503;
+      errorMessage = 'AI service is currently unavailable';
+    }
+
+    return NextResponse.json({ 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      analysis: { sections: DEFAULT_SECTIONS } 
+    }, { 
+      status,
+      headers 
+    });
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+//  FUNCTION‑CALL BASED REPAIR
+// ──────────────────────────────────────────────────────────────────────────────
+async function repairWithFunctionCalling(openai: OpenAI, model: string, originalUserMsg: string, badJson: string) {
+  try {
+    const fnSchema = {
+      name: "patch_analysis",
+      description: "Return a corrected JSON that conforms to the analysis schema.",
+      parameters: aiSchema,
+    } as const;
+
+    const result = await openai.chat.completions.create({
+      model,
+      temperature: 0,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: originalUserMsg },
+        { role: "assistant", content: badJson },
+        { role: "user", content: "The previous JSON is invalid. Please call patch_analysis with a fixed object." },
+      ],
+      tools: [{ type: "function", function: fnSchema }],
+      tool_choice: { type: "function", function: { name: "patch_analysis" } },
+      max_tokens: 800,
+      response_format: { type: "json_object" },
+    });
+
+    const toolCall = result.choices[0].message.tool_calls?.[0];
+    if (toolCall && toolCall.function?.arguments) {
+      const fixed = JSON.parse(toolCall.function.arguments);
+      if (validateAI(fixed)) return fixed;
+    }
+  } catch {/* ignore repair failures */}
+  return null;
 }

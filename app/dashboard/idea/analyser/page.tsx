@@ -175,7 +175,7 @@ export default function IdeaAnalyser() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="ideaDescription">What idea are you thinking about?</Label>
+            <Label htmlFor="ideaDescription">What problem are you trying to solve?</Label>
             <Textarea
               id="ideaDescription"
               placeholder="Describe your business idea in detail..."
@@ -186,10 +186,10 @@ export default function IdeaAnalyser() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="proposedSolution">What solution are you thinking of?</Label>
+            <Label htmlFor="proposedSolution">What solution are you thinking of? <span className="text-muted-foreground">(Optional)</span></Label>
             <Textarea
               id="proposedSolution"
-              placeholder="Describe your proposed solution..."
+              placeholder="Briefly describe your proposed solution or approach..."
               value={formData.proposedSolution}
               onChange={(e) => handleInputChange("proposedSolution", e.target.value)}
               rows={3}
@@ -197,10 +197,10 @@ export default function IdeaAnalyser() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="intendedUsers">Who is it for?</Label>
+            <Label htmlFor="intendedUsers">Who is it for? <span className="text-muted-foreground">(Optional)</span></Label>
             <Textarea
               id="intendedUsers"
-              placeholder="Describe your target users or customers..."
+              placeholder="Describe your target audience or customer segments..."
               value={formData.intendedUsers}
               onChange={(e) => handleInputChange("intendedUsers", e.target.value)}
               rows={2}
@@ -208,10 +208,10 @@ export default function IdeaAnalyser() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="geographicFocus">Where is it for?</Label>
+            <Label htmlFor="geographicFocus">Where is it for? <span className="text-muted-foreground">(Optional)</span></Label>
             <Textarea
               id="geographicFocus"
-              placeholder="Describe the geographic focus or market..."
+              placeholder="Specify geographic location or market if applicable..."
               value={formData.geographicFocus}
               onChange={(e) => handleInputChange("geographicFocus", e.target.value)}
               rows={2}
