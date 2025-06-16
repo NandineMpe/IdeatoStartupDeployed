@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import Hotspot from "@/components/hotspot"
+import NextImage from "next/image"
+import dynamic from "next/dynamic"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import Preloader from "@/components/preloader"
+
+const Hotspot = dynamic(() => import("@/components/hotspot"), { ssr: false })
+const Preloader = dynamic(() => import("@/components/preloader"), { ssr: false })
 import { useAuth } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 
@@ -100,24 +102,7 @@ And it sure as hell doesn't change the world.`,
   }
 
   useEffect(() => {
-    // Fixed image preloading approach
-    try {
-      const bgImage = new Image()
-      bgImage.src =
-        "https://adtmi1hoep2dtmuq.public.blob.vercel-storage.com/JunoTrainStationWallpaper-CQdXr4yQAM3OGg0Yixek8NCjYkxxVG.png"
-
-      bgImage.onload = () => {
-        console.log("Background image loaded successfully")
-      }
-
-      bgImage.onerror = (error) => {
-        console.error("Failed to load background image", error)
-      }
-    } catch (error) {
-      console.error("Error in image preloading:", error)
-    }
-
-    // Set a minimum display time for the preloader (5 seconds)
+    // Delay hiding the preloader to ensure a smooth transition
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 5000)
@@ -150,7 +135,7 @@ And it sure as hell doesn't change the world.`,
       <section className="relative h-screen overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
+          <NextImage
             src="https://adtmi1hoep2dtmuq.public.blob.vercel-storage.com/JunoTrainStationWallpaper-CQdXr4yQAM3OGg0Yixek8NCjYkxxVG.png"
             alt="Startup Train with entrepreneur"
             fill
