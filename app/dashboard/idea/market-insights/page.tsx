@@ -53,6 +53,26 @@ export default function ConsumerMarketInsightsPage() {
   const [sections, setSections] = useState<AnalysisSection[]>([])
   const [activeCalculationDetail, setActiveCalculationDetail] = useState<string | null>(null)
 
+  useEffect(() => {
+    async function loadLastIdea() {
+      try {
+        const res = await fetch('/api/interactions?feature=idea-analysis&limit=1')
+        if (res.ok) {
+          const data = await res.json()
+          const last = data.interactions?.[0]
+          const idea = last?.input?.ideaDescription
+          if (idea && !query) {
+            setQuery(idea)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load previous idea', err)
+      }
+    }
+    loadLastIdea()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Function to clean markdown content by removing reference placeholders
   const cleanMarkdown = (content: string) => {
     if (!content) return ""
@@ -468,6 +488,15 @@ export default function ConsumerMarketInsightsPage() {
       })
 
       setSections(newSections)
+      await fetch("/api/interactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          feature: "market-insights",
+          input: { query },
+          output: { content: cleanedContent },
+        }),
+      })
 
       // Expand the first section by default
       setExpandedSections({ foundationalUnderstanding: true })

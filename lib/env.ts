@@ -15,6 +15,7 @@ const envSchema = z.object({
   DEEPSEEK_API_KEY: z.string().optional(),
   GOOGLE_GEMINI_API_KEY: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),
+  SUPABASE_DB_URL: z.string().url().optional(),
 })
 
 type Env = z.infer<typeof envSchema>

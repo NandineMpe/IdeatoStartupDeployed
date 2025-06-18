@@ -68,8 +68,14 @@ A comprehensive platform for entrepreneurs to analyze business ideas, generate p
    \`\`\`
 
 5. **Set up the database**
-   
-   The Supabase tables will be created automatically when you first run the application.
+
+   Ensure your `.env.local` includes `SUPABASE_DB_URL`, the Postgres connection string provided by Supabase. Then run:
+
+   ```bash
+   pnpm setup-db
+   ```
+
+   This creates a `user_interactions` table used to store history for each user.
 
 6. **Start the development server**
    \`\`\`bash
@@ -173,6 +179,7 @@ Make sure to set all environment variables in your Vercel project settings:
 - `CLERK_WEBHOOK_SECRET`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_DB_URL`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - All AI API keys

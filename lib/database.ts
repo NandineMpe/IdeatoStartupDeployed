@@ -250,3 +250,70 @@ export async function deleteExpiredSessions() {
     console.error("Failed to delete expired sessions:", error)
   }
 }
+
+export interface Interaction {
+  id: string
+  user_id: string
+  feature: string
+  input: any
+  output: any
+  created_at: string
+}
+
+export async function logInteraction(
+  user_id: string,
+  feature: string,
+  input: any,
+  output: any,
+): Promise<Interaction | null> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("user_interactions")
+      .insert({ user_id, feature, input, output })
+      .select()
+      .single()
+
+    if (error) {
+      throw new DatabaseError(`Failed to log interaction: ${error.message}`, error.code)
+    }
+
+    return data as Interaction
+  } catch (error) {
+    if (error instanceof DatabaseError) {
+      throw error
+    }
+    return null
+  }
+}
+
+export async function getInteractions(
+  user_id: string,
+  feature?: string,
+  limit = 10,
+): Promise<Interaction[]> {
+  try {
+    let query = supabaseAdmin
+      .from("user_interactions")
+      .select("*")
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (feature) {
+      query = query.eq("feature", feature)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw new DatabaseError(`Failed to fetch interactions: ${error.message}`, error.code)
+    }
+
+    return (data as Interaction[]) || []
+  } catch (error) {
+    if (error instanceof DatabaseError) {
+      throw error
+    }
+    return []
+  }
+}
