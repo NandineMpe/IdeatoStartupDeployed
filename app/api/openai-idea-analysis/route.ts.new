@@ -1,0 +1,39 @@
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+// Mock response for development and testing
+const MOCK_RESPONSE = {
+  sections: [
+    {
+      title: "1. PROBLEM DEFINITION & HYPOTHESIS VALIDATION",
+      content: "This is a mock analysis of the business idea. The problem appears to be well-defined with clear market potential. The hypothesis that this solution will address the identified gap seems valid based on the initial assessment."
+    },
+    {
+      title: "2. MARKET ANALYSIS",
+      content: "The target market shows promising indicators with a growing demand for solutions like this one. Key competitors include [Competitor A] and [Competitor B], but your proposed solution offers unique advantages in terms of [unique selling points]."
+    },
+    {
+      title: "3. SOLUTION & VIABILITY",
+      content: "The proposed solution effectively addresses the problem with a scalable approach. The technology stack is appropriate, and the implementation plan appears feasible. Initial cost projections suggest a positive ROI within [timeframe]."
+    },
+    {
+      title: "4. RISK ASSESSMENT",
+      content: "Key risks include market adoption rates and potential regulatory challenges. Mitigation strategies should be developed for these areas. Additional research is recommended to validate the assumptions made in the financial projections."
+    },
+    {
+      title: "5. RECOMMENDATIONS",
+      content: "Proceed with a pilot program to validate key assumptions. Focus on [specific aspects] during the initial phase. Consider partnerships with [potential partners] to accelerate market entry."
+    }
+  ]
+};
+
+export async function POST(req: NextRequest) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store, max-age=0',
+  };
+
+  // Always return mock data for now
+  console.log('Returning mock data');
+  return NextResponse.json(MOCK_RESPONSE, { headers });
+}
