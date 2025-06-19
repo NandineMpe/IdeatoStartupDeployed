@@ -1,25 +1,43 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// In-memory store for demo; swap with DB in production
-let feedbackStore: any[] = []
+import { supabaseAdmin } from "lib/supabase"
 
 export async function GET() {
-  return NextResponse.json({ feedback: feedbackStore })
+  const { data, error } = await supabaseAdmin
+    .from("feedback")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching feedback:", error)
+    return NextResponse.json({ error: "Failed to fetch feedback" }, { status: 500 })
+  }
+
+  return NextResponse.json({ feedback: data })
 }
 
 export async function POST(req: NextRequest) {
-  const data = await req.json()
-  const newItem = {
-    ...data,
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-  }
-  feedbackStore.unshift(newItem)
-  return NextResponse.json({ success: true, item: newItem })
-}
+  const { name, email, feedback_type, message } = await req.json()
 
-export async function DELETE(req: NextRequest) {
-  const { id } = await req.json()
-  feedbackStore = feedbackStore.filter((item) => item.id !== id)
-  return NextResponse.json({ success: true })
+  // Basic validation
+  if (!name || !email || !feedback_type || !message) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+  }
+
+  // Email validation (basic regex)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("feedback")
+    .insert([{ name, email, feedback_type, message }])
+    .select()
+
+  if (error) {
+    console.error("Error inserting feedback:", error)
+    return NextResponse.json({ error: "Failed to submit feedback" }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true, item: data?.[0] })
 }

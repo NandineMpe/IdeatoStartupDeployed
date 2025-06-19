@@ -8,8 +8,16 @@ export async function POST(req: Request) {
   try {
     const { query } = await req.json()
 
-    if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 })
+    if (typeof query !== "string") {
+      return NextResponse.json({ error: "Query must be a string" }, { status: 400 })
+    }
+
+    if (!query.trim()) {
+      return NextResponse.json({ error: "Query cannot be empty" }, { status: 400 })
+    }
+
+    if (query.length > 5000) {
+      return NextResponse.json({ error: "Query is too long (max 5000 characters)" }, { status: 400 })
     }
 
     console.log("Starting market analysis for:", query)
@@ -131,8 +139,25 @@ IMPORTANT: Do not deviate from the exact section headings provided above. The fr
     })
 
     return NextResponse.json({ content: text })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in market analysis:", error)
+
+    // Check if the error is from the AI SDK
+    if (error.name === "AIError" || error.constructor?.name === "AIError") {
+      // Potentially more specific AI error handling here if the SDK provides codes/types
+      let errorMessage = "Failed to analyze market due to an issue with the AI service."
+      if (error.message) {
+        errorMessage += ` Details: ${error.message}`
+      }
+      // It's generally better to return a 502 (Bad Gateway) if the upstream service (AI) fails.
+      return NextResponse.json({ error: errorMessage }, { status: 502 })
+    }
+
+    // Handle other types of errors
+    if (error instanceof SyntaxError && error.message.includes("JSON")) {
+      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 })
+    }
+
     return NextResponse.json({ error: "Failed to analyze market. Please try again." }, { status: 500 })
   }
 }

@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast"
 
 // Types for feedback data
 interface FeedbackItem {
-  id: number
+  id: string // Changed from number to string
   source: string
   content: string
   category: string
@@ -87,7 +87,7 @@ export default function FeedbackInsights() {
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null) // Changed from number to string
   const [showAddForm, setShowAddForm] = useState(false)
   const [newFeedback, setNewFeedback] = useState({
     source: "",
@@ -107,12 +107,17 @@ export default function FeedbackInsights() {
         const data = await response.json()
 
         if (data.feedback && data.feedback.length > 0) {
-          setFeedback(data.feedback)
+          // Ensure IDs are strings, even if API sends numbers (though Supabase should send strings for UUIDs)
+          const transformedFeedback = data.feedback.map((item: any) => ({
+            ...item,
+            id: String(item.id),
+          }));
+          setFeedback(transformedFeedback)
         } else {
           // Use sample data if no feedback exists yet
           setFeedback([
             {
-              id: 1,
+              id: "sample-1", // Changed to string
               source: "User Interview",
               content: "I love how intuitive the onboarding process is. It took me less than 5 minutes to get started.",
               category: "User Experience",
@@ -122,7 +127,7 @@ export default function FeedbackInsights() {
               createdAt: new Date().toISOString(),
             },
             {
-              id: 2,
+              id: "sample-2", // Changed to string
               source: "Customer Support",
               content: "The pricing page is confusing. I couldn't figure out which plan was right for my needs.",
               category: "Pricing",
@@ -132,7 +137,7 @@ export default function FeedbackInsights() {
               createdAt: new Date(Date.now() - 86400000).toISOString(),
             },
             {
-              id: 3,
+              id: "sample-3", // Changed to string
               source: "Product Survey",
               content: "The analytics dashboard is useful, but I wish it had more export options for reports.",
               category: "Features",
@@ -226,15 +231,12 @@ export default function FeedbackInsights() {
     }
   }
 
-  const handleDeleteFeedback = async (id: number) => {
+  const handleDeleteFeedback = async (id: string) => { // Changed id type to string
     setIsDeleting(id)
     try {
-      const response = await fetch("/api/feedback", {
+      // Corrected API endpoint and removed body/headers for DELETE
+      const response = await fetch(`/api/feedback/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
       })
 
       const data = await response.json()
