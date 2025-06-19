@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "./supabase"
+import { supabaseAdmin } from "./supabase.ts"
 import bcrypt from "bcryptjs"
 
 export interface User {

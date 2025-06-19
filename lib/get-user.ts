@@ -1,6 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
 import { createClient } from "@supabase/supabase-js"
-import { env } from "./env"
+import { env } from "./env.ts"
 
 export async function getCurrentUser() {
   try {
