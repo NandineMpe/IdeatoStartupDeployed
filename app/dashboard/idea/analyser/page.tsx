@@ -147,6 +147,15 @@ export default function IdeaAnalyser() {
           }
 
           setAnalysis(data.analysis)
+          await fetch("/api/interactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              feature: "idea-analysis",
+              input: formData,
+              output: data,
+            }),
+          })
           toast({
             title: "Analysis Complete (Using Mock Data)",
             description: "Your business idea has been analyzed using our offline analysis engine.",
@@ -178,6 +187,15 @@ export default function IdeaAnalyser() {
       }
 
       setAnalysis(data.analysis)
+      await fetch("/api/interactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          feature: "idea-analysis",
+          input: formData,
+          output: data,
+        }),
+      })
       toast({
         title: "Analysis Complete",
         description: useMockApi

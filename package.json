@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-db": "node scripts/setup-db.js"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "latest",
@@ -63,6 +64,7 @@
     "next-themes": "^0.4.6",
     "nodemailer": "latest",
     "openai": "latest",
+    "pg": "^8.16.1",
     "react": "^18.3.1",
     "react-day-picker": "^9.7.0",
     "react-dom": "^18.3.1",
