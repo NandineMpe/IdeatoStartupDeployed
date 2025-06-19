@@ -2,16 +2,19 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import DreamWeaverNavbar from "@/components/dream-weaver-studio/navbar"
 import { Rocket, ShoppingBag, Sparkle, Users } from "lucide-react"
 
 export default function DreamWeaverStudio() {
   return (
-    <div className="p-6 space-y-10">
-      <section className="text-center space-y-4">
-        <h1 className="text-4xl md:text-6xl font-bold text-primary">Dream Weaver Studio</h1>
-        <p className="text-white/80 max-w-2xl mx-auto">
-          Build, discover and share innovative apps in our venture marketplace. Dream big and bring your vision to life.
-        </p>
+    <div>
+      <DreamWeaverNavbar />
+      <div className="p-6 space-y-10">
+        <section className="text-center space-y-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-primary">Dream Weaver Studio</h1>
+          <p className="text-white/80 max-w-2xl mx-auto">
+            Build, discover and share innovative apps in our venture marketplace. Dream big and bring your vision to life.
+          </p>
         <Button className="bg-primary text-black hover:bg-primary/90 px-8 py-4 rounded-none text-lg">
           Get Started
         </Button>
@@ -56,6 +59,7 @@ export default function DreamWeaverStudio() {
           The Dream Weaver Studio marketplace is under construction. Check back soon to discover, buy and sell cutting-edge startup apps.
         </p>
       </section>
+      </div>
     </div>
   )
 }
