@@ -123,7 +123,7 @@ const MAX_TOKENS = 4000; // Increased to allow for more detailed responses
 const TOP_P = 0.1;
 const TIMEOUT_MS = 60_000;
 
-export const runtime = "edge";
+// Use the Node.js runtime for this route as it relies on Node APIs above.
 
 export async function POST(req: NextRequest) {
   const headers = {
