@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import NextImage from "next/image"
 import dynamic from "next/dynamic"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import Link from "next/link"
 
 const Hotspot = dynamic(() => import("@/components/hotspot"), { ssr: false })
 const Preloader = dynamic(() => import("@/components/preloader"), { ssr: false })
@@ -204,6 +205,19 @@ And it sure as hell doesn't change the world.`,
                       </motion.span>
                     )}
                   </span>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+              >
+                <Button
+                  asChild
+                  className="bg-primary text-black hover:bg-primary/90 px-12 py-6 rounded-none text-lg font-light tracking-wider uppercase transition-all duration-300"
+                >
+                  <Link href="/dream-weaver-studio">Dream Weaver Studio</Link>
                 </Button>
               </motion.div>
             </div>
